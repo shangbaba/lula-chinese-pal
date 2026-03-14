@@ -219,15 +219,18 @@ export async function getPage(id) {
   return txGet('pages', id);
 }
 
-export async function savePage(articleId, pageNumber, imageBase64, mimeType, characters, fullTranslation) {
+export async function savePage(articleId, pageNumber, imageBase64, mimeType, rawText) {
   const page = {
     id: generateId(),
     articleId,
     pageNumber,
     imageBase64,
     mimeType: mimeType || 'image/jpeg',
-    characters,
-    fullTranslation,
+    rawText: rawText || '',
+    characters: [],       // filled when pinyin is requested
+    fullTranslation: '',  // filled when translation is requested
+    pinyinReady: false,
+    translationReady: false,
     dateCreated: Date.now()
   };
   return txPut('pages', page);

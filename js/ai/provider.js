@@ -1,21 +1,39 @@
-// js/ai/provider.js — Adapter pattern for swappable AI providers
+// js/ai/provider.js — Adapter for swappable AI providers
 
-import { processImageWithGemini } from './gemini.js';
+import { ocrImage, getPinyinForText, getTranslationForText } from './gemini.js';
 import { getSetting } from '../db.js';
 
-export async function processImage(imageBase64, mimeType) {
+async function getApiKey() {
   const provider = await getSetting('aiProvider') || 'gemini';
   const apiKey = await getSetting(`${provider}ApiKey`);
+  if (!apiKey) throw new Error(`No API key found. Please add your Gemini API key in Settings.`);
+  return { provider, apiKey };
+}
 
-  if (!apiKey) {
-    throw new Error(`No API key found for provider "${provider}". Please add it in Settings.`);
-  }
-
+// Step 1 — OCR only: returns { title, rawText }
+export async function processImageOCR(imageBase64, mimeType) {
+  const { provider, apiKey } = await getApiKey();
   switch (provider) {
-    case 'gemini':
-      return processImageWithGemini(imageBase64, mimeType, apiKey);
-    default:
-      throw new Error(`Unknown provider: ${provider}`);
+    case 'gemini': return ocrImage(imageBase64, mimeType, apiKey);
+    default: throw new Error(`Unknown provider: ${provider}`);
+  }
+}
+
+// Step 2 — Pinyin: returns array of { char, pinyin }
+export async function processPinyin(rawText) {
+  const { provider, apiKey } = await getApiKey();
+  switch (provider) {
+    case 'gemini': return getPinyinForText(rawText, apiKey);
+    default: throw new Error(`Unknown provider: ${provider}`);
+  }
+}
+
+// Step 3 — Translation: returns plain string
+export async function processTranslation(rawText) {
+  const { provider, apiKey } = await getApiKey();
+  switch (provider) {
+    case 'gemini': return getTranslationForText(rawText, apiKey);
+    default: throw new Error(`Unknown provider: ${provider}`);
   }
 }
 

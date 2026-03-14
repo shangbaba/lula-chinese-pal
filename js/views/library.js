@@ -1,7 +1,7 @@
 // js/views/library.js — Article library with folders and grouping
 
 import { getArticles, getArticle, getFolders, getPages, saveFolder, updateFolder, deleteFolder, updateArticle, deleteArticle, shareArticleToProfile, getProfiles, saveArticle, savePage } from '../db.js';
-import { processImage, fileToBase64 } from '../ai/provider.js';
+import { processImageOCR, fileToBase64 } from '../ai/provider.js';
 import { showToast, showLoading, hideLoading, showModal, closeModal, logError } from '../ui.js';
 
 export async function renderLibrary(profile) {
@@ -261,52 +261,97 @@ async function processPhotos(files, profile, rerender) {
   try {
     const processed = [];
 
-    // Convert and process all files
     for (let i = 0; i < files.length; i++) {
-      showLoading(`Processing page ${i + 1} of ${files.length}…`);
+      showLoading(`Scanning page ${i + 1} of ${files.length}…`);
       let base64, mimeType;
       try {
         ({ base64, mimeType } = await fileToBase64(files[i]));
       } catch (convertErr) {
-        throw new Error(`Failed to read photo ${i + 1}: ${convertErr.message}. Try a different image format.`);
+        throw new Error(`Failed to read photo ${i + 1}: ${convertErr.message}`);
       }
       try {
-        const result = await processImage(base64, mimeType);
-        processed.push({ base64, mimeType, result });
+        const result = await processImageOCR(base64, mimeType);
+        processed.push({ base64, mimeType, title: result.title, rawText: result.rawText || '' });
       } catch (aiErr) {
         throw new Error(`Page ${i + 1} of ${files.length} — ${aiErr.message}`);
       }
     }
 
-    const detectedTitle = processed[0]?.result?.title || null;
-    let title = detectedTitle;
-
-    if (!title) {
-      hideLoading();
-      title = await promptForTitle();
-      showLoading('Saving article…');
-    }
-
-    const article = await saveArticle(profile.id, title || 'Unknown');
-
-    for (let i = 0; i < processed.length; i++) {
-      const { base64, mimeType, result } = processed[i];
-      await savePage(article.id, i + 1, base64, mimeType, result.characters || [], result.fullTranslation || '');
-    }
-
     hideLoading();
-    showToast(`✅ "${title || 'Unknown'}" saved!`);
-    rerender();
+
+    // Show bulk edit screen so user can clean up text before saving
+    showBulkEditScreen(processed, profile, rerender);
 
   } catch (err) {
     hideLoading();
-    logError(err.message || 'Unknown error during processing', err.stack || '');
+    logError(err.message || 'Unknown error during OCR', err.stack || '');
   }
 }
 
-async function processFile(file) {
-  const { base64, mimeType } = await fileToBase64(file);
-  return processImage(base64, mimeType);
+function showBulkEditScreen(processed, profile, rerender) {
+  const detectedTitle = processed[0]?.title || '';
+
+  const pagesHtml = processed.map((p, i) => `
+    <div class="bulk-edit-page">
+      <div class="bulk-edit-page-label">Page ${i + 1}</div>
+      <textarea class="bulk-edit-textarea" id="bulk-text-${i}" rows="8">${p.rawText}</textarea>
+    </div>
+  `).join('');
+
+  showModal(`
+    <div class="modal-handle"></div>
+    <div class="modal-title">Review Recognised Text</div>
+    <p class="text-sm text-muted mb-3">Remove any text that isn't part of the article, then tap Save.</p>
+    <div class="bulk-edit-title-row">
+      <label class="settings-label">Article Title</label>
+      <input class="input mt-2" id="bulk-title-input" type="text"
+        value="${detectedTitle}" placeholder="Enter article title…">
+    </div>
+    <div class="bulk-edit-pages mt-3">${pagesHtml}</div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-secondary w-full" id="btn-bulk-cancel">Cancel</button>
+      <button class="btn btn-primary w-full" id="btn-bulk-save">Save Article</button>
+    </div>
+  `);
+
+  // Focus title if empty, otherwise first textarea
+  setTimeout(() => {
+    const titleInput = document.getElementById('bulk-title-input');
+    if (titleInput && !detectedTitle) titleInput.focus();
+    else document.getElementById('bulk-text-0')?.focus();
+  }, 450);
+
+  document.getElementById('btn-bulk-cancel')?.addEventListener('click', closeModal);
+
+  document.getElementById('btn-bulk-save')?.addEventListener('click', async () => {
+    const title = document.getElementById('bulk-title-input')?.value.trim() || 'Unknown';
+
+    // Collect edited text from each textarea
+    const editedPages = processed.map((p, i) => ({
+      ...p,
+      rawText: document.getElementById(`bulk-text-${i}`)?.value.trim() || p.rawText
+    }));
+
+    closeModal();
+    await saveProcessedArticle(editedPages, title, profile, rerender);
+  });
+}
+
+async function saveProcessedArticle(pages, title, profile, rerender) {
+  showLoading('Saving article…');
+  try {
+    const article = await saveArticle(profile.id, title);
+    for (let i = 0; i < pages.length; i++) {
+      const { base64, mimeType, rawText } = pages[i];
+      await savePage(article.id, i + 1, base64, mimeType, rawText);
+    }
+    hideLoading();
+    showToast(`✅ "${title}" saved!`);
+    rerender();
+  } catch (err) {
+    hideLoading();
+    logError(`Failed to save article: ${err.message}`, err.stack || '');
+  }
 }
 
 function promptForTitle() {

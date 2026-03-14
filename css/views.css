@@ -789,3 +789,41 @@
   margin-top: 6px;
   letter-spacing: 0.08em;
 }
+
+/* ─── Bulk Edit Screen ───────────────────────────────────────── */
+.bulk-edit-title-row { margin-bottom: 4px; }
+
+.bulk-edit-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 45vh;
+  overflow-y: auto;
+}
+
+.bulk-edit-page-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.bulk-edit-textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  background: var(--bg-soft);
+  font-family: var(--font-chinese);
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text-primary);
+  resize: vertical;
+  outline: none;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.bulk-edit-textarea:focus { border-color: var(--red); }
