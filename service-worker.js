@@ -1,6 +1,6 @@
 // service-worker.js
 // VERSION: bump this number every deployment to force Safari to refresh
-const VERSION = '3';
+const VERSION = '4';
 const CACHE = `lula-v${VERSION}`;
 
 const ASSETS = [
