@@ -264,9 +264,18 @@ async function processPhotos(files, profile, rerender) {
     // Convert and process all files
     for (let i = 0; i < files.length; i++) {
       showLoading(`Processing page ${i + 1} of ${files.length}…`);
-      const { base64, mimeType } = await fileToBase64(files[i]);
-      const result = await processImage(base64, mimeType);
-      processed.push({ base64, mimeType, result });
+      let base64, mimeType;
+      try {
+        ({ base64, mimeType } = await fileToBase64(files[i]));
+      } catch (convertErr) {
+        throw new Error(`Failed to read photo ${i + 1}: ${convertErr.message}. Try a different image format.`);
+      }
+      try {
+        const result = await processImage(base64, mimeType);
+        processed.push({ base64, mimeType, result });
+      } catch (aiErr) {
+        throw new Error(`Page ${i + 1} of ${files.length} — ${aiErr.message}`);
+      }
     }
 
     const detectedTitle = processed[0]?.result?.title || null;
@@ -291,8 +300,7 @@ async function processPhotos(files, profile, rerender) {
 
   } catch (err) {
     hideLoading();
-    logError(err.message || 'Something went wrong', err.stack || '');
-    showToast('❌ Error — see error banner for details');
+    logError(err.message || 'Unknown error during processing', err.stack || '');
   }
 }
 
