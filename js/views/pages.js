@@ -68,18 +68,24 @@ function showRenameModal(article, onRenamed) {
   showModal(`
     <div class="modal-handle"></div>
     <div class="modal-title">Rename Article</div>
-    <input class="input" id="rename-modal-input" type="text" value="${article.title}" placeholder="Article name…">
+    <input class="input" id="rename-modal-input" type="text" value="${article.title}" placeholder="Article name…" readonly>
     <div style="display:flex;gap:10px;margin-top:12px">
       <button class="btn btn-secondary w-full" id="btn-rename-cancel">Cancel</button>
       <button class="btn btn-primary w-full" id="btn-rename-save">Save</button>
     </div>
   `);
 
-  // Focus and select after modal animation
+  // Remove readonly after a delay so iOS doesn't auto-dismiss
+  // when the keyboard fires during the touch sequence
   setTimeout(() => {
     const input = document.getElementById('rename-modal-input');
-    if (input) { input.focus(); input.select(); }
-  }, 300);
+    if (!input) return;
+    input.removeAttribute('readonly');
+    input.focus();
+    // Move cursor to end
+    const len = input.value.length;
+    input.setSelectionRange(len, len);
+  }, 400);
 
   const save = async () => {
     const val = document.getElementById('rename-modal-input')?.value.trim();
