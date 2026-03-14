@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE = 'lula-v1';
+const CACHE = 'lula-v2';
 const ASSETS = [
   '/',
   '/index.html',
