@@ -658,3 +658,126 @@
   .profile-avatar { font-size: 44px; }
   .profile-logo-han { font-size: 44px; }
 }
+
+/* ─── Error Banner ───────────────────────────────────────────── */
+.error-banner {
+  position: fixed;
+  bottom: calc(var(--safe-bottom) + 90px);
+  left: 12px;
+  right: 12px;
+  background: #1E1010;
+  border: 1.5px solid #DC2626;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  z-index: 400;
+  box-shadow: 0 4px 24px rgba(220,38,38,0.25);
+  animation: slide-up 0.25s ease;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.error-banner-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.error-banner-icon { font-size: 16px; }
+
+.error-banner-title {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 800;
+  color: #FCA5A5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.error-banner-close {
+  background: none;
+  border: none;
+  color: #FCA5A5;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.error-banner-msg {
+  font-size: 13px;
+  font-weight: 600;
+  color: #FEE2E2;
+  line-height: 1.5;
+  word-break: break-word;
+  margin-bottom: 4px;
+}
+
+.error-banner-detail {
+  font-size: 11px;
+  color: #FCA5A5;
+  font-family: monospace;
+  line-height: 1.4;
+  max-height: 60px;
+  overflow-y: auto;
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.error-banner-log-btn {
+  background: none;
+  border: 1px solid #DC2626;
+  color: #FCA5A5;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+/* ─── Error Log Modal ────────────────────────────────────────── */
+.error-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.log-entry {
+  background: #FEF2F2;
+  border-radius: var(--radius-sm);
+  border: 1px solid #FECACA;
+  padding: 10px 12px;
+}
+
+.log-time {
+  font-size: 11px;
+  font-weight: 800;
+  color: #DC2626;
+  margin-bottom: 4px;
+}
+
+.log-msg {
+  font-size: 13px;
+  font-weight: 600;
+  color: #7F1D1D;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.log-detail {
+  font-size: 11px;
+  color: #991B1B;
+  font-family: monospace;
+  margin-top: 4px;
+  line-height: 1.4;
+  word-break: break-all;
+  max-height: 80px;
+  overflow-y: auto;
+}

@@ -1,7 +1,7 @@
 // js/views/settings.js — Settings with PIN lock
 
 import { getSetting, setSetting } from '../db.js';
-import { showToast } from '../ui.js';
+import { showToast, showErrorLog } from '../ui.js';
 
 export async function renderSettings() {
   const view = document.getElementById('view-settings');
@@ -102,7 +102,7 @@ async function renderSettingsContent(view) {
           <div>
             <label class="settings-label">OCR (Character Recognition)</label>
             <select class="input mt-2" id="sel-ocr-provider">
-              <option value="gemini" ${aiProvider === 'gemini' ? 'selected' : ''}>Gemini 2.0 Flash</option>
+              <option value="gemini" ${aiProvider === 'gemini' ? 'selected' : ''}>Gemini 2.5 Flash</option>
               <option value="claude" ${aiProvider === 'claude' ? 'selected' : ''}>Claude (Anthropic)</option>
             </select>
           </div>
@@ -136,6 +136,14 @@ async function renderSettingsContent(view) {
             <input class="input mt-2" id="new-pin-input" type="text" placeholder="New PIN (letters or numbers)">
           </div>
           <button class="btn btn-secondary btn-sm" id="btn-change-pin">Change PIN</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Diagnostics</div>
+        <div class="card" style="padding:16px">
+          <p class="text-sm text-muted mb-3">View a log of any errors that have occurred in this session.</p>
+          <button class="btn btn-secondary w-full" id="btn-view-error-log">🪲 View Error Log</button>
         </div>
       </div>
 
@@ -182,6 +190,10 @@ async function renderSettingsContent(view) {
       setSetting('translationProvider', translation)
     ]);
     showToast('✅ Providers saved');
+  });
+
+  document.getElementById('btn-view-error-log')?.addEventListener('click', () => {
+    showErrorLog();
   });
 
   document.getElementById('btn-change-pin')?.addEventListener('click', async () => {

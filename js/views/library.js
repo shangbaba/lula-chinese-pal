@@ -2,7 +2,7 @@
 
 import { getArticles, getArticle, getFolders, getPages, saveFolder, updateFolder, deleteFolder, updateArticle, deleteArticle, shareArticleToProfile, getProfiles, saveArticle, savePage } from '../db.js';
 import { processImage, fileToBase64 } from '../ai/provider.js';
-import { showToast, showLoading, hideLoading, showModal, closeModal } from '../ui.js';
+import { showToast, showLoading, hideLoading, showModal, closeModal, logError } from '../ui.js';
 
 export async function renderLibrary(profile) {
   const view = document.getElementById('view-library');
@@ -291,8 +291,8 @@ async function processPhotos(files, profile, rerender) {
 
   } catch (err) {
     hideLoading();
-    showToast('❌ ' + (err.message || 'Something went wrong'));
-    console.error(err);
+    logError(err.message || 'Something went wrong', err.stack || '');
+    showToast('❌ Error — see error banner for details');
   }
 }
 
