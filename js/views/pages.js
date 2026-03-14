@@ -1,7 +1,7 @@
 // js/views/pages.js — Shows list of pages for an article
 
 import { getArticle, getPages, updateArticle } from '../db.js';
-import { showToast } from '../ui.js';
+import { showToast, showModal, closeModal } from '../ui.js';
 
 export async function renderPagesView(articleId) {
   const view = document.getElementById('view-pages');
@@ -50,13 +50,10 @@ export async function renderPagesView(articleId) {
     window.lula.navigate('library');
   });
 
-  document.getElementById('btn-rename-article')?.addEventListener('click', async () => {
-    const newTitle = prompt('Rename article:', article.title);
-    if (newTitle && newTitle.trim()) {
-      await updateArticle(article.id, { title: newTitle.trim() });
-      document.getElementById('article-title-display').textContent = newTitle.trim();
-      showToast('✅ Renamed');
-    }
+  document.getElementById('btn-rename-article')?.addEventListener('click', () => {
+    showRenameModal(article, (newTitle) => {
+      document.getElementById('article-title-display').textContent = newTitle;
+    });
   });
 
   view.querySelectorAll('.page-card').forEach(card => {
@@ -64,5 +61,39 @@ export async function renderPagesView(articleId) {
       const pageIndex = parseInt(card.dataset.pageIndex);
       window.lula.navigate('reader', { articleId, pageIndex });
     });
+  });
+}
+
+function showRenameModal(article, onRenamed) {
+  showModal(`
+    <div class="modal-handle"></div>
+    <div class="modal-title">Rename Article</div>
+    <input class="input" id="rename-modal-input" type="text" value="${article.title}" placeholder="Article name…">
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="btn btn-secondary w-full" id="btn-rename-cancel">Cancel</button>
+      <button class="btn btn-primary w-full" id="btn-rename-save">Save</button>
+    </div>
+  `);
+
+  // Focus and select after modal animation
+  setTimeout(() => {
+    const input = document.getElementById('rename-modal-input');
+    if (input) { input.focus(); input.select(); }
+  }, 300);
+
+  const save = async () => {
+    const val = document.getElementById('rename-modal-input')?.value.trim();
+    if (!val) return;
+    await updateArticle(article.id, { title: val });
+    article.title = val;
+    closeModal();
+    onRenamed(val);
+    showToast('✅ Renamed');
+  };
+
+  document.getElementById('btn-rename-save')?.addEventListener('click', save);
+  document.getElementById('btn-rename-cancel')?.addEventListener('click', closeModal);
+  document.getElementById('rename-modal-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') save();
   });
 }
