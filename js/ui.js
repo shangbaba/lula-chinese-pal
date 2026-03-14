@@ -11,12 +11,10 @@ export function logError(msg, detail = '') {
   };
   errorLog.push(entry);
   console.error('[Lula Error]', msg, detail);
-  // Show a persistent error banner
   showErrorBanner(entry);
 }
 
 function showErrorBanner(entry) {
-  // Remove any existing banner
   document.getElementById('error-banner')?.remove();
 
   const banner = document.createElement('div');
@@ -109,21 +107,25 @@ export function hideLoading() {
 
 // ─── Modal / Bottom Sheet ─────────────────────────────────────────
 export function showModal(content) {
-  let overlay = document.getElementById('modal-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'modal-overlay';
-    overlay.className = 'modal-overlay';
-    overlay.innerHTML = `<div class="modal-sheet" id="modal-sheet"></div>`;
-    document.body.appendChild(overlay);
+  // Remove any existing modal first
+  document.getElementById('modal-overlay')?.remove();
 
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) closeModal();
-    });
-  }
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-overlay';
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `<div class="modal-sheet" id="modal-sheet"></div>`;
+  document.body.appendChild(overlay);
 
   document.getElementById('modal-sheet').innerHTML = content;
   requestAnimationFrame(() => overlay.classList.add('active'));
+
+  // Delay dismiss listener so the tap that opened the modal
+  // doesn't immediately close it on iOS Safari
+  setTimeout(() => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+  }, 400);
 }
 
 export function closeModal() {
@@ -131,7 +133,7 @@ export function closeModal() {
   if (overlay) {
     overlay.classList.remove('active');
     setTimeout(() => {
-      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      overlay.parentNode?.removeChild(overlay);
     }, 300);
   }
 }

@@ -16,7 +16,7 @@ export async function renderProfileView(onSelect) {
           <span class="profile-logo-en">Lula Chinese Pal</span>
         </div>
         <p class="profile-tagline">Who's reading today? 📖</p>
-        <p class="profile-version">v1.4</p>
+        <p class="profile-version">v1.5</p>
       </div>
       <div class="profile-cards">
         ${profiles.map(p => `
