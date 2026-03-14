@@ -282,5 +282,5 @@ export async function renderReader(articleId, startPageIndex = 0) {
 }
 
 function isPunctuation(char) {
-  return /[。，！？；：""''（）【】、…—·\.\,\!\?\;\:\(\)\[\]\"\']/u.test(char);
+  return /[。，！？；：""''（）【】、…—·.,!?;:()\[\]"']/u.test(char);
 }
