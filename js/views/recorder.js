@@ -103,7 +103,13 @@ async function stopRecording(articleId, article) {
 }
 
 function getSupportedMimeType() {
-  const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+  const types = [
+    'audio/mp4',     // ✅ preferred for m4a
+    'audio/m4a',     // ⚠️ rarely supported
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/ogg;codecs=opus'
+  ];
   for (const type of types) {
     if (MediaRecorder.isTypeSupported(type)) return type;
   }
@@ -206,8 +212,15 @@ async function showRecordingMenu(rec, otherProfile, articleId, article) {
   document.getElementById('menu-rec-share-native')?.addEventListener('click', async () => {
     closeModal();
     try {
-      const ext = rec.audioBlob.type.includes('mp4') ? 'm4a' : 'webm';
-      const file = new File([rec.audioBlob], `${rec.name}.${ext}`, { type: rec.audioBlob.type });
+      let file;
+
+      if (rec.audioBlob.type.includes('mp4')) {
+        // ✅ True m4a-compatible
+        file = new File([rec.audioBlob], `${rec.name}.m4a`, { type: rec.audioBlob.type });
+      } else {
+        // ⚠️ Honest fallback (DON'T fake m4a)
+        file = new File([rec.audioBlob], `${rec.name}.webm`, { type: rec.audioBlob.type });
+      }
       await navigator.share({ files: [file], title: rec.name });
     } catch (err) {
       if (err.name !== 'AbortError') showToast('❌ Share not supported on this device');
